@@ -1,0 +1,840 @@
+<!--
+███    ███    ████████    ████████    ████████
+████  ████   ███    ███  ███    ███  ███    ███
+██ ████ ██   ███         ███    ███  ███    ███
+██  ██  ██   ███          ████████    ████████
+██      ██   ███         ███    ███  ███    ███
+██      ██   ███    ███  ███    ███  ███    ███
+██      ██    ████████    ████████    ████████
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MC88 Morse</title>
+    <style>
+        /* ==========================================
+           THEMES & VARIABLES
+           ========================================== */
+        :root {
+            /* Light Theme (Default) */
+            --bg-color: #F4F4F0;
+            --panel-bg: #FFFFFF;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --border-color: #111111;
+            --accent: #111111;
+            --accent-text: #FFFFFF;
+            --input-bg: #F9F9F9;
+            --shadow-offset: 4px 4px 0px #111111;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body.dark-mode {
+            /* Dark Theme */
+            --bg-color: #121212;
+            --panel-bg: #1A1A1A;
+            --text-main: #F4F4F0;
+            --text-muted: #A0A0A0;
+            --border-color: #F4F4F0;
+            --accent: #F4F4F0;
+            --accent-text: #111111;
+            --input-bg: #222222;
+            --shadow-offset: 4px 4px 0px #F4F4F0;
+        }
+
+        /* ==========================================
+           RESET & BASE STYLES
+           ========================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        /* ==========================================
+           LAYOUT
+           ========================================== */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-main);
+            border-radius: 50%;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            transform: translate(-2px, -2px);
+            box-shadow: var(--shadow-offset);
+        }
+
+        button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        button.primary {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        button.primary:hover {
+            background-color: var(--text-muted);
+            border-color: var(--text-muted);
+        }
+
+        /* SVG Icon styling */
+        button svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .mode-btn.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+        }
+
+        /* Translator Area */
+        .translator-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            position: relative;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-offset);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .panel label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            padding: 12px;
+            resize: vertical;
+            outline: none;
+            font-family: var(--font-mono);
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            border-color: var(--text-main);
+            box-shadow: inset 0 0 0 2px var(--bg-color);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        /* Controls Area */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .swap-btn {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .swap-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .swap-btn:hover {
+            transform: rotate(180deg) scale(1.1);
+            background-color: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* Note */
+        .note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* ==========================================
+           MODALS
+           ========================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+            box-shadow: 8px 8px 0px var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .dict-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .dict-item {
+            background-color: var(--input-bg);
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .dict-item span:first-child {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .prompt-area {
+            width: 100%;
+            height: 250px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 20px;
+            border-top: 2px solid var(--border-color);
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .panels-container {
+                grid-template-columns: 1fr;
+            }
+            .action-row {
+                flex-direction: column;
+                width: 100%;
+            }
+            .action-row button {
+                width: 100%;
+            }
+            .controls {
+                flex-direction: column;
+            }
+            .controls button {
+                width: 100%;
+            }
+            header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <span></span> MC88 Morse
+            </div>
+            <div class="header-actions">
+                <button onclick="toggleTheme()" title="Toggle Black/White Theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg>
+                    Theme
+                </button>
+                <button onclick="openModal('guideModal')" title="Dictionary & Guide">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Guide
+                </button>
+                <button onclick="generatePrompt()" class="primary" title="Copy AI Prompt">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    Prompt
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Translator -->
+        <div class="translator-box">
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" id="btn-auto" onclick="setMode('auto')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    Auto Detect
+                </button>
+                <button class="mode-btn" id="btn-en" onclick="setMode('en')">English (Standard)</button>
+                <button class="mode-btn" id="btn-ar" onclick="setMode('ar')">Arabic (Custom MC88)</button>
+            </div>
+            <p class="note" id="mode-note">Smart Mode: Detects input automatically. (Note: If Morse code is entered, it assumes Arabic mapping).</p>
+
+            <div class="panels-container">
+                <!-- Input Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <label id="input-label">Input (Text or Morse)</label>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Type here</span>
+                    </div>
+                    <textarea id="inputText" placeholder="Enter text or paste Morse code here..." oninput="debounceTranslate()"></textarea>
+                </div>
+
+                <!-- Output Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <label id="output-label">Output (Morse or Text)</label>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Result</span>
+                    </div>
+                    <textarea id="outputText" placeholder="Result will appear here..." readonly></textarea>
+                </div>
+            </div>
+
+            <!-- Center Controls -->
+            <div class="controls">
+                <button class="swap-btn" onclick="swapText()" title="Swap Input/Output">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4m6 0v12m0 0 4-4m-4 4-4-4"/></svg>
+                </button>
+                <button class="primary" onclick="translateText()" style="padding: 12px 32px; font-size: 1rem;">Translate</button>
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="action-row">
+                <button onclick="copyText()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    Copy Output
+                </button>
+                <button onclick="downloadText()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download Text
+                </button>
+                <button onclick="clearText()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    Clear All
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Copyright &copy; 2026 Mohamed Cheikh (by MC88). All Rights Reserved.</p>
+            <p>Contact: Mohamed005cheikh@gmail.com</p>
+        </footer>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Morse Code Guide</h2>
+                <button class="close-btn" onclick="closeModal('guideModal')">&times;</button>
+            </div>
+            
+            <h3 style="margin-bottom: 10px; font-size: 1.1rem;">1. Standard English</h3>
+            <div class="dict-grid" id="enDictGrid"></div>
+
+            <h3 style="margin-top: 30px; margin-bottom: 10px; font-size: 1.1rem;">2. Custom Arabic (MC88)</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">Designed based on the rule: More frequent letters = fewer symbols.</p>
+            <div class="dict-grid" id="arDictGrid"></div>
+        </div>
+    </div>
+
+    <!-- Prompt Modal -->
+    <div class="modal-overlay" id="promptModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>AI Translation Prompt</h2>
+                <button class="close-btn" onclick="closeModal('promptModal')">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Copy this prompt and paste it into any AI model (like ChatGPT) to translate using your custom MC88 dictionary:</p>
+            <textarea class="prompt-area" id="promptTextArea" readonly></textarea>
+            <button class="primary" onclick="copyPrompt()" style="width: 100%;">Copy Prompt</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // THEME TOGGLE
+        // ==========================================
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        // ==========================================
+        // CUSTOM & STANDARD MORSE DICTIONARIES
+        // Copyright (c) 2026 Mohamed Cheikh (by MC88)
+        // ==========================================
+        
+        const customArabicMorseMap = {
+            'ا': '.', 'ل': '-',
+            'م': '..', 'و': '.-', 'ن': '-.', 'ب': '--',
+            'ي': '...', 'ف': '..-', 'ر': '.-.', 'س': '.--', 
+            'ه': '-..', 'ع': '-.-', 'د': '--.', 'ق': '---',
+            'ت': '....', 'ح': '...-', 'ج': '..-.', 'ك': '..--', 
+            'ش': '.-..', 'ط': '.-.-', 'ص': '.--.', 'خ': '.---', 
+            'ز': '-...', 'ض': '-..-', 'غ': '-.-.', 'ث': '-.--', 
+            'ذ': '--..', 'ظ': '--.-',
+            ',': '---.', '.': '----', ' ': '/'
+        };
+
+        const standardEnglishMorseMap = {
+            'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.', 
+            'f': '..-.', 'g': '--.', 'h': '....', 'i': '..', 'j': '.---', 
+            'k': '-.-', 'l': '.-..', 'm': '--', 'n': '-.', 'o': '---', 
+            'p': '.--.', 'q': '--.-', 'r': '.-.', 's': '...', 't': '-', 
+            'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-', 'y': '-.--', 
+            'z': '--..',
+            '0': '-----', '1': '.----', '2': '..---', '3': '...--', 
+            '4': '....-', '5': '.....', '6': '-....', '7': '--...', 
+            '8': '---..', '9': '----.',
+            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', 
+            '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-', 
+            '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-', 
+            '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.', 
+            '$': '...-..-', '@': '.--.-.', ' ': '/'
+        };
+
+        const reverseEnglishMap = Object.entries(standardEnglishMorseMap).reduce((acc, [key, val]) => {
+            acc[val] = key; return acc;
+        }, {});
+
+        const reverseArabicMap = Object.entries(customArabicMorseMap).reduce((acc, [key, val]) => {
+            acc[val] = key; return acc;
+        }, {});
+
+        let currentMode = 'auto'; 
+        let translateTimeout = null;
+
+        // ==========================================
+        // TRANSLATION LOGIC
+        // ==========================================
+        
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
+            document.getElementById('btn-en').classList.toggle('active', mode === 'en');
+            document.getElementById('btn-ar').classList.toggle('active', mode === 'ar');
+            
+            const note = document.getElementById('mode-note');
+            if (mode === 'auto') {
+                note.textContent = 'Smart Mode: Detects input automatically. (Note: If Morse code is entered, it assumes Arabic mapping).';
+            } else if (mode === 'en') {
+                note.textContent = 'English Mode: Uses standard English dictionary only.';
+            } else {
+                note.textContent = 'Arabic Mode: Uses Custom MC88 dictionary only.';
+            }
+            
+            translateText();
+        }
+
+        function translateText() {
+            const input = document.getElementById('inputText').value.trim();
+            const outputArea = document.getElementById('outputText');
+            
+            if (!input) {
+                outputArea.value = '';
+                return;
+            }
+
+            const isMorseInput = /^[.\-\/\s]+$/.test(input);
+
+            if (isMorseInput) {
+                let mapToUse = reverseEnglishMap; 
+                
+                if (currentMode === 'en') {
+                    mapToUse = reverseEnglishMap;
+                } else if (currentMode === 'ar') {
+                    mapToUse = reverseArabicMap;
+                } else if (currentMode === 'auto') {
+                    mapToUse = reverseArabicMap; 
+                }
+                
+                outputArea.value = morseToText(input, mapToUse);
+            } else {
+                let mapToUse = standardEnglishMorseMap;
+                
+                if (currentMode === 'ar') {
+                    mapToUse = customArabicMorseMap;
+                } else if (currentMode === 'auto') {
+                    const isArabic = /[\u0600-\u06FF]/.test(input);
+                    mapToUse = isArabic ? customArabicMorseMap : standardEnglishMorseMap;
+                }
+                
+                outputArea.value = textToMorse(input, mapToUse);
+            }
+        }
+
+        function textToMorse(text, map) {
+            let morseResult = [];
+            for (let char of text.toLowerCase()) {
+                if (map[char]) {
+                    morseResult.push(map[char]);
+                } else if (char === ' ') {
+                    morseResult.push('/');
+                }
+            }
+            return morseResult.join(' ').replace(/ \/ /g, ' / ');
+        }
+
+        function morseToText(morse, reverseMap) {
+            let textResult = [];
+            const words = morse.split('/');
+            for (let word of words) {
+                let wordText = '';
+                const letters = word.trim().split(/\s+/);
+                for (let letter of letters) {
+                    if (reverseMap[letter]) {
+                        wordText += reverseMap[letter];
+                    } else {
+                        wordText += '?';
+                    }
+                }
+                textResult.push(wordText);
+            }
+            return textResult.join(' ');
+        }
+
+        function debounceTranslate() {
+            clearTimeout(translateTimeout);
+            translateTimeout = setTimeout(translateText, 500);
+        }
+
+        // ==========================================
+        // UI ACTIONS
+        // ==========================================
+
+        function swapText() {
+            const inputArea = document.getElementById('inputText');
+            const outputArea = document.getElementById('outputText');
+            
+            inputArea.value = outputArea.value;
+            outputArea.value = '';
+            
+            translateText();
+        }
+
+        function clearText() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').value = '';
+        }
+
+        function copyText() {
+            const outputArea = document.getElementById('outputText');
+            if (!outputArea.value) return;
+            navigator.clipboard.writeText(outputArea.value).then(() => {
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = 'Copied';
+                setTimeout(() => btn.innerHTML = originalHTML, 2000);
+            });
+        }
+
+        function downloadText() {
+            const outputArea = document.getElementById('outputText');
+            if (!outputArea.value) return;
+            const blob = new Blob([outputArea.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `morse_translation_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ==========================================
+        // MODALS & DICTIONARY RENDERING
+        // ==========================================
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'guideModal') renderDictionaries();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        function renderDictionaries() {
+            const enGrid = document.getElementById('enDictGrid');
+            const arGrid = document.getElementById('arDictGrid');
+            if (enGrid.innerHTML === '') {
+                Object.entries(standardEnglishMorseMap).forEach(([key, val]) => {
+                    if (key !== ' ') {
+                        const div = document.createElement('div');
+                        div.className = 'dict-item';
+                        div.innerHTML = `<span>${key.toUpperCase()}</span> : <span>${val}</span>`;
+                        enGrid.appendChild(div);
+                    }
+                });
+                Object.entries(customArabicMorseMap).forEach(([key, val]) => {
+                    if (key !== ' ') {
+                        const div = document.createElement('div');
+                        div.className = 'dict-item';
+                        div.innerHTML = `<span>${key}</span> : <span>${val}</span>`;
+                        arGrid.appendChild(div);
+                    }
+                });
+            }
+        }
+
+        function generatePrompt() {
+            const dictString = JSON.stringify(customArabicMorseMap, null, 2);
+            const prompt = `You are an expert translator and Morse code specialist.
+Your task is to translate between Arabic text and the custom Arabic Morse code (designed by Mohamed Cheikh - MC88).
+
+Translation Rules:
+1. If the input is Arabic text, translate it to Morse code using the custom dictionary below.
+2. If the input is Morse code (dots and dashes), decode it to Arabic text using the custom dictionary below.
+3. Use "/" to indicate a space between words.
+4. Use a regular space to indicate a separation between letters.
+
+Here is the custom Arabic Morse code dictionary (Do NOT use any other dictionary):
+${dictString}
+
+Please translate the following text and provide ONLY the answer without any additional explanations:
+[Insert text here]`;
+
+            document.getElementById('promptTextArea').value = prompt;
+            openModal('promptModal');
+        }
+
+        function copyPrompt() {
+            const promptArea = document.getElementById('promptTextArea');
+            promptArea.select();
+            document.execCommand('copy');
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Prompt Copied';
+            setTimeout(() => btn.innerHTML = originalText, 2000);
+        }
+
+        // Initialize
+        window.onload = () => {
+            setMode('auto');
+        };
+    </script>
+</body>
+</html>
