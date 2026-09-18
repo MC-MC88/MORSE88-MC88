@@ -209,7 +209,7 @@ They're ignored by design. The translator works on the base letter. `م` and `م
 
 ---
 
-# 🇸🇦 النسخة العربية
+# 🇲🇷 النسخة العربية
 
 <div dir="rtl">
 
@@ -389,8 +389,12 @@ They're ignored by design. The translator works on the base letter. `م` and `م
 
 <sub>© 2026 محمد الشيخ — MC88</sub>
 
+</div>
+
 <br />
 <br />
+
+<div align="center" dir="ltr" style="direction:ltr;text-align:center">
 
     ███    ███    ████████    ████████    ████████
     ████  ████   ███    ███  ███    ███  ███    ███
