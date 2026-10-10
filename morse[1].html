@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MC88 Morse</title>
+    <style>
+        :root {
+            --bg-color: #F4F4F0;
+            --panel-bg: #FFFFFF;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --border-color: #111111;
+            --accent: #111111;
+            --accent-text: #FFFFFF;
+            --input-bg: #F9F9F9;
+            --shadow-offset: 4px 4px 0px #111111;
+            --warning-color: #B33A1F;
+            --warning-bg: rgba(179, 58, 31, 0.08);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --panel-bg: #1A1A1A;
+            --text-main: #F4F4F0;
+            --text-muted: #A0A0A0;
+            --border-color: #F4F4F0;
+            --accent: #F4F4F0;
+            --accent-text: #111111;
+            --input-bg: #222222;
+            --shadow-offset: 4px 4px 0px #F4F4F0;
+            --warning-color: #FF8266;
+            --warning-bg: rgba(255, 130, 102, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: var(--text-main);
+            border-radius: 50%;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            transform: translate(-2px, -2px);
+            box-shadow: var(--shadow-offset);
+        }
+
+        button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        button.primary {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+        }
+
+        button.primary:hover {
+            background-color: var(--text-muted);
+            border-color: var(--text-muted);
+        }
+
+        button svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Mode selector: 2 modes only */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            transform: translate(-2px, -2px);
+            box-shadow: var(--shadow-offset);
+        }
+
+        .mode-btn.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
+            box-shadow: var(--shadow-offset);
+            transform: translate(-2px, -2px);
+        }
+
+        .mode-btn small {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            text-transform: none;
+            margin-top: 4px;
+            opacity: 0.75;
+        }
+
+        .translator-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            position: relative;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-offset);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .panel label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            padding: 12px;
+            resize: vertical;
+            outline: none;
+            font-family: var(--font-mono);
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            border-color: var(--text-main);
+            box-shadow: inset 0 0 0 2px var(--bg-color);
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .warning-message {
+            display: none;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-left: 3px solid var(--warning-color);
+            background-color: var(--warning-bg);
+            color: var(--warning-color);
+            font-size: 0.82rem;
+            border-radius: 3px;
+            font-family: var(--font-mono);
+            line-height: 1.5;
+        }
+
+        .warning-message.visible {
+            display: block;
+        }
+
+        /* Swap button: single centered control */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 4px 0;
+        }
+
+        .swap-btn {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background-color: var(--panel-bg);
+            border: 3px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+            box-shadow: var(--shadow-offset);
+        }
+
+        .swap-btn svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        .swap-btn:hover {
+            transform: rotate(180deg) scale(1.08);
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            box-shadow: 6px 6px 0px var(--border-color);
+        }
+
+        .swap-btn:active {
+            transform: rotate(180deg) scale(0.98);
+            box-shadow: none;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 5px;
+            font-weight: 500;
+            line-height: 1.6;
+            padding: 0 10px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--panel-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            position: relative;
+            box-shadow: 8px 8px 0px var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.8rem;
+            cursor: pointer;
+            padding: 0;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .guide-section {
+            margin-bottom: 30px;
+        }
+
+        .guide-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .guide-section p {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.65;
+        }
+
+        .guide-section ul {
+            list-style-position: inside;
+            margin-left: 8px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            line-height: 1.75;
+        }
+
+        .dict-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .dict-item {
+            background-color: var(--input-bg);
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+        }
+
+        .dict-item span:first-child {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .prompt-area {
+            width: 100%;
+            height: 320px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            resize: vertical;
+            line-height: 1.55;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            padding: 20px;
+            border-top: 2px solid var(--border-color);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .panels-container {
+                grid-template-columns: 1fr;
+            }
+            .action-row {
+                flex-direction: column;
+                width: 100%;
+            }
+            .action-row button {
+                width: 100%;
+            }
+            header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span></span> MC88 Morse
+            </div>
+            <div class="header-actions">
+                <button onclick="toggleTheme()" title="Toggle theme">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg>
+                    Theme
+                </button>
+                <button onclick="openModal('guideModal')" title="Reference and rules">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Guide
+                </button>
+                <button onclick="generatePrompt()" class="primary" title="AI prompt">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                    Prompt
+                </button>
+            </div>
+        </header>
+
+        <div class="translator-box">
+            
+            <div class="mode-selector">
+                <button class="mode-btn active" id="btn-ar" onclick="setMode('ar')">
+                    Arabic
+                    <small>MC88 Standard</small>
+                </button>
+                <button class="mode-btn" id="btn-en" onclick="setMode('en')">
+                    English
+                    <small>International Standard</small>
+                </button>
+            </div>
+            <p class="note" id="mode-note"></p>
+
+            <div class="panels-container">
+                <div class="panel">
+                    <div class="panel-header">
+                        <label id="input-label">Input</label>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Type here</span>
+                    </div>
+                    <textarea id="inputText" placeholder="Enter text or paste Morse code here..." oninput="debounceTranslate()"></textarea>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <label id="output-label">Output</label>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Result</span>
+                    </div>
+                    <textarea id="outputText" placeholder="Result will appear here..." readonly></textarea>
+                    <div class="warning-message" id="warningMessage"></div>
+                </div>
+            </div>
+
+            <!-- Single swap control -->
+            <div class="controls">
+                <button class="swap-btn" onclick="swapText()" title="Swap input and output">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4m6 0v12m0 0 4-4m-4 4-4-4"/></svg>
+                </button>
+            </div>
+
+            <div class="action-row">
+                <button onclick="copyText(event)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    Copy Output
+                </button>
+                <button onclick="downloadText()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                    Download Text
+                </button>
+                <button onclick="clearText()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    Clear All
+                </button>
+            </div>
+        </div>
+
+        <footer>
+            <p>Copyright &copy; 2026 Mohamed Cheikh (by MC88). All Rights Reserved.</p>
+            <p>Contact: Mohamed005cheikh@gmail.com</p>
+        </footer>
+    </div>
+
+    <div class="modal-overlay" id="guideModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Morse Reference</h2>
+                <button class="close-btn" onclick="closeModal('guideModal')">&times;</button>
+            </div>
+
+            <div class="guide-section">
+                <h3>1. English Morse (International Standard)</h3>
+                <p>
+                    The standard Morse code, internationally agreed since 1865. Every Latin
+                    letter and digit has a fixed pattern that is used all over the world.
+                </p>
+                <div class="dict-grid" id="enDictGrid"></div>
+            </div>
+
+            <div class="guide-section">
+                <h3>2. Arabic Morse (MC88 Custom)</h3>
+                <p>
+                    Arabic never had an official Morse standard. I designed this one from
+                    scratch around a single rule: <strong>the more frequent a letter is in Arabic,
+                    the shorter its code.</strong> This mirrors the principle Samuel Morse used in
+                    1835 for the Latin alphabet.
+                </p>
+                <p style="margin-top: 10px;">
+                    The table is sorted from most frequent to least frequent. The first two
+                    letters get one symbol. The next four get two. The next eight get three.
+                    The next sixteen get four. The final letter gets five.
+                </p>
+                <div class="dict-grid" id="arDictGrid"></div>
+            </div>
+
+            <div class="guide-section">
+                <h3>3. Design Rules</h3>
+                <ul>
+                    <li><strong>Frequency-based codes.</strong> More frequent letters receive shorter codes.</li>
+                    <li><strong>Hamza normalization.</strong> أ، إ، آ are encoded as ا. ؤ is encoded as و. ئ is encoded as ي. Standalone hamza (ء) has its own code.</li>
+                    <li><strong>Diacritics are ignored.</strong> Tashkeel (fatḥa, ḍamma, kasra, shadda, sukūn) does not affect the Morse output.</li>
+                    <li><strong>Numbers and punctuation</strong> use the international standard, so the system stays compatible with standard Morse for those.</li>
+                    <li><strong>Word separation.</strong> A forward slash "/" separates words. A regular space separates letters.</li>
+                </ul>
+            </div>
+
+            <div class="guide-section">
+                <h3>4. Sources</h3>
+                <p>
+                    The frequency ordering is based on approximate values reported in common
+                    Modern Standard Arabic corpora:
+                </p>
+                <ul>
+                    <li>Penn Arabic Treebank</li>
+                    <li>King Saud University Arabic Corpus</li>
+                    <li>ArabiCorpus</li>
+                </ul>
+                <p style="margin-top: 10px;">
+                    Frequency values differ slightly across corpora, so the exact ordering is
+                    approximate. The general shape — ا and ل first, ظ and غ last — is consistent
+                    across sources.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="promptModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>AI Prompt</h2>
+                <button class="close-btn" onclick="closeModal('promptModal')">&times;</button>
+            </div>
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">
+                Copy this prompt and paste it into any AI model (ChatGPT, Claude, Gemini).
+                Send it first, wait for the AI to reply "Ready.", then send your Arabic text.
+            </p>
+            <textarea class="prompt-area" id="promptTextArea" readonly></textarea>
+            <button class="primary" onclick="copyPrompt(event)" style="width: 100%;">Copy Prompt</button>
+        </div>
+    </div>
+
+    <script>
+        // MC88 Morse
+        // A bilingual Morse translator.
+        // English uses the international standard.
+        // Arabic uses a custom table designed around frequency.
+
+        // Arabic Morse Table (MC88 Custom)
+        // Rule: the more frequent a letter is in Arabic, the shorter its code.
+        // Frequency source: modern standard Arabic corpora
+        // (Penn Arabic Treebank, King Saud University, ArabiCorpus).
+        // Exact values differ slightly across corpora, but the general
+        // ordering is stable.
+        //
+        // Layout:
+        //   1 symbol  -> top 2 letters
+        //   2 symbols -> next 4 letters
+        //   3 symbols -> next 8 letters
+        //   4 symbols -> next 16 letters
+        //   5 symbols -> standalone hamza
+        //   Numbers and punctuation follow the international standard.
+        const customArabicMorseMap = {
+            // 1 symbol (most frequent)
+            'ا': '.',
+            'ل': '-',
+
+            // 2 symbols
+            'م': '..',
+            'ن': '.-',
+            'و': '-.',
+            'ي': '--',
+
+            // 3 symbols
+            'ر': '...',
+            'ت': '..-',
+            'ب': '.-.',
+            'ه': '.--',
+            'د': '-..',
+            'س': '-.-',
+            'ع': '--.',
+            'ف': '---',
+
+            // 4 symbols
+            'ق': '....',
+            'ح': '...-',
+            'ج': '..-.',
+            'ش': '..--',
+            'ة': '.-..',
+            'ص': '.-.-',
+            'ط': '.--.',
+            'ك': '.---',
+            'خ': '-...',
+            'ز': '-..-',
+            'ض': '-.-.',
+            'ذ': '-.--',
+            'ث': '--..',
+            'غ': '--.-',
+            'ظ': '---.',
+            'ى': '----',
+
+            // 5 symbols (standalone hamza)
+            'ء': '.-...',
+
+            // Numbers (international standard)
+            '0': '-----',
+            '1': '.----',
+            '2': '..---',
+            '3': '...--',
+            '4': '....-',
+            '5': '.....',
+            '6': '-....',
+            '7': '--...',
+            '8': '---..',
+            '9': '----.',
+
+            // Punctuation (international standard)
+            '.': '.-.-.-',
+            ',': '--..--',
+            '?': '..--..',
+            "'": '.----.',
+            '!': '-.-.--',
+            '/': '-..-.',
+            '(': '-.--.',
+            ')': '-.--.-',
+            '&': '.-...',
+            ':': '---...',
+            ';': '-.-.-.',
+            '=': '-...-',
+            '+': '.-.-.',
+            '-': '-....-',
+            '_': '..--.-',
+            '"': '.-..-.',
+            '$': '...-..-',
+            '@': '.--.-.',
+
+            // Word separator
+            ' ': '/'
+        };
+
+        // English Morse Table (International Standard)
+        // Standard Morse as standardized internationally.
+        // No changes from the canonical table.
+        const standardEnglishMorseMap = {
+            'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.',
+            'f': '..-.', 'g': '--.', 'h': '....', 'i': '..', 'j': '.---',
+            'k': '-.-', 'l': '.-..', 'm': '--', 'n': '-.', 'o': '---',
+            'p': '.--.', 'q': '--.-', 'r': '.-.', 's': '...', 't': '-',
+            'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-', 'y': '-.--',
+            'z': '--..',
+            '0': '-----', '1': '.----', '2': '..---', '3': '...--',
+            '4': '....-', '5': '.....', '6': '-....', '7': '--...',
+            '8': '---..', '9': '----.',
+            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.',
+            '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-',
+            '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-',
+            '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.',
+            '$': '...-..-', '@': '.--.-.', ' ': '/'
+        };
+
+        // Arabic Normalization
+        // Before encoding, hamza variants are treated as their base letters.
+        // This is standard practice in Arabic text processing, and it keeps
+        // the Morse table compact.
+        //
+        // Diacritics (tashkeel) are ignored entirely — they are pronunciation
+        // guides, not letters.
+        const arabicNormalization = {
+            'أ': 'ا',
+            'إ': 'ا',
+            'آ': 'ا',
+            'ؤ': 'و',
+            'ئ': 'ي'
+        };
+
+        // Unicode range for Arabic diacritics (tashkeel).
+        // We skip any character in this range during encoding.
+        const DIACRITIC_START = 0x064B;
+        const DIACRITIC_END = 0x0652;
+
+        // Build reverse maps from the forward tables.
+        // We exclude the space character from the reverse maps because "/"
+        // is not a letter.
+        function buildReverseMap(map) {
+            const reverse = {};
+            for (const [key, value] of Object.entries(map)) {
+                if (key === ' ') continue;
+                if (reverse[value] === undefined) {
+                    reverse[value] = key;
+                }
+            }
+            return reverse;
+        }
+
+        const reverseArabicMap = buildReverseMap(customArabicMorseMap);
+        const reverseEnglishMap = buildReverseMap(standardEnglishMorseMap);
+
+        // State
+        let currentMode = 'ar';
+        let translateTimeout = null;
+
+        // Mode Selection
+        // Only two modes now: Arabic (MC88) and English (Standard).
+        function setMode(mode) {
+            currentMode = mode;
+
+            document.getElementById('btn-ar').classList.toggle('active', mode === 'ar');
+            document.getElementById('btn-en').classList.toggle('active', mode === 'en');
+
+            const note = document.getElementById('mode-note');
+            if (mode === 'ar') {
+                note.textContent = 'Arabic mode: converts between Arabic text and MC88 Morse.';
+            } else {
+                note.textContent = 'English mode: uses the international Morse standard.';
+            }
+
+            translateText();
+        }
+
+        // Translation
+
+        // Check whether the input looks like raw Morse code.
+        // Only dots, dashes, slashes, and whitespace.
+        function isMorseInput(input) {
+            return /^[.\-\/\s]+$/.test(input);
+        }
+
+        // Apply Arabic normalization rules.
+        // Skip diacritics, replace hamza variants with base letters.
+        function normalizeArabic(text) {
+            let result = '';
+            for (const char of text) {
+                const code = char.charCodeAt(0);
+                if (code >= DIACRITIC_START && code <= DIACRITIC_END) {
+                    continue;
+                }
+                const replacement = arabicNormalization[char];
+                result += replacement !== undefined ? replacement : char;
+            }
+            return result;
+        }
+
+        // Convert text to Morse.
+        // Returns the code string and a list of dropped characters.
+        function textToMorse(text, map, normalizeArabicInput) {
+            const source = normalizeArabicInput ? normalizeArabic(text) : text.toLowerCase();
+            const codes = [];
+            const dropped = [];
+
+            for (const char of source) {
+                if (map[char] !== undefined) {
+                    codes.push(map[char]);
+                } else {
+                    if (!dropped.includes(char)) {
+                        dropped.push(char);
+                    }
+                }
+            }
+
+            // Join codes, then clean up multiple consecutive word separators.
+            // This handles the case where a whole word is dropped — we don't
+            // want to leave " / / " behind.
+            let result = codes.join(' ');
+            result = result.replace(/(\s*\/\s*)+/g, ' / ');   // collapse consecutive slashes
+            result = result.replace(/^\s*\/\s*/, '');         // trim leading slash
+            result = result.replace(/\s*\/\s*$/, '');         // trim trailing slash
+            result = result.replace(/\s+/g, ' ').trim();      // collapse whitespace
+
+            return {
+                result: result,
+                dropped: dropped
+            };
+        }
+
+        // Convert Morse to text.
+        // Returns the text and a list of unrecognized codes.
+        function morseToText(morse, reverseMap) {
+            const words = morse.trim().split('/');
+            const result = [];
+            const dropped = [];
+
+            for (const word of words) {
+                let wordText = '';
+                const letters = word.trim().split(/\s+/);
+
+                for (const letter of letters) {
+                    if (letter === '') continue;
+
+                    if (reverseMap[letter] !== undefined) {
+                        wordText += reverseMap[letter];
+                    } else {
+                        wordText += '?';
+                        if (!dropped.includes(letter)) {
+                            dropped.push(letter);
+                        }
+                    }
+                }
+                result.push(wordText);
+            }
+
+            return {
+                result: result.join(' ').trim(),
+                dropped: dropped
+            };
+        }
+
+        // Main translation entry point.
+        function translateText() {
+            const inputElement = document.getElementById('inputText');
+            const outputElement = document.getElementById('outputText');
+
+            const input = inputElement.value.trim();
+
+            if (!input) {
+                outputElement.value = '';
+                hideWarning();
+                return;
+            }
+
+            let outcome;
+            const map = currentMode === 'ar' ? customArabicMorseMap : standardEnglishMorseMap;
+            const reverseMap = currentMode === 'ar' ? reverseArabicMap : reverseEnglishMap;
+
+            if (isMorseInput(input)) {
+                outcome = morseToText(input, reverseMap);
+            } else {
+                const shouldNormalize = currentMode === 'ar';
+                outcome = textToMorse(input, map, shouldNormalize);
+            }
+
+            outputElement.value = outcome.result;
+
+            if (outcome.dropped.length > 0) {
+                showWarning(outcome.dropped);
+            } else {
+                hideWarning();
+            }
+        }
+
+        function showWarning(dropped) {
+            const warningElement = document.getElementById('warningMessage');
+            const display = dropped
+                .map(c => c === ' ' ? '(space)' : c)
+                .join('  ');
+            warningElement.textContent = 'Skipped (not in table): ' + display;
+            warningElement.classList.add('visible');
+        }
+
+        function hideWarning() {
+            const warningElement = document.getElementById('warningMessage');
+            warningElement.classList.remove('visible');
+            warningElement.textContent = '';
+        }
+
+        // Debounce so the translation does not run on every keystroke.
+        function debounceTranslate() {
+            clearTimeout(translateTimeout);
+            translateTimeout = setTimeout(translateText, 350);
+        }
+
+        // UI Actions
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function swapText() {
+            const inputArea = document.getElementById('inputText');
+            const outputArea = document.getElementById('outputText');
+
+            const temp = inputArea.value;
+            inputArea.value = outputArea.value;
+            outputArea.value = temp;
+
+            translateText();
+        }
+
+        function clearText() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').value = '';
+            hideWarning();
+        }
+
+        function copyText(event) {
+            const outputArea = document.getElementById('outputText');
+            if (!outputArea.value) return;
+
+            navigator.clipboard.writeText(outputArea.value).then(() => {
+                const btn = event.currentTarget;
+                const original = btn.innerHTML;
+                btn.innerHTML = 'Copied';
+                setTimeout(() => { btn.innerHTML = original; }, 1500);
+            });
+        }
+
+        function downloadText() {
+            const outputArea = document.getElementById('outputText');
+            if (!outputArea.value) return;
+
+            const blob = new Blob([outputArea.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'mc88-morse-' + Date.now() + '.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // Modals
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'guideModal') renderDictionaries();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // Dictionary Rendering
+        // The Arabic table is rendered in the order it appears in the
+        // source object, which follows the frequency rule.
+        // The English table is rendered in alphabetical order.
+        let dictionariesRendered = false;
+
+        function renderDictionaries() {
+            if (dictionariesRendered) return;
+            dictionariesRendered = true;
+
+            const enGrid = document.getElementById('enDictGrid');
+            const arGrid = document.getElementById('arDictGrid');
+
+            // English — alphabetical order
+            const enEntries = Object.entries(standardEnglishMorseMap)
+                .filter(([key]) => key !== ' ')
+                .sort((a, b) => {
+                    const aIsLetter = /[a-z]/i.test(a[0]);
+                    const bIsLetter = /[a-z]/i.test(b[0]);
+                    if (aIsLetter && !bIsLetter) return -1;
+                    if (!aIsLetter && bIsLetter) return 1;
+                    return a[0].localeCompare(b[0]);
+                });
+
+            for (const [key, value] of enEntries) {
+                const div = document.createElement('div');
+                div.className = 'dict-item';
+                div.innerHTML = '<span>' + key + '</span> : <span>' + value + '</span>';
+                enGrid.appendChild(div);
+            }
+
+            // Arabic — in frequency order (which is the source order).
+            // Only Arabic letters here, no numbers or punctuation.
+            for (const [key, value] of Object.entries(customArabicMorseMap)) {
+                if (key === ' ') continue;
+                const code = key.charCodeAt(0);
+                const isArabicLetter = code >= 0x0600 && code <= 0x06FF;
+                if (!isArabicLetter) continue;
+
+                const div = document.createElement('div');
+                div.className = 'dict-item';
+                div.innerHTML = '<span>' + key + '</span> : <span>' + value + '</span>';
+                arGrid.appendChild(div);
+            }
+        }
+
+        // AI Prompt
+        // Shorter, more structured, works better with Gemini.
+        function generatePrompt() {
+            // Serialize only the Arabic letters (not numbers or punctuation).
+            const lettersOnly = {};
+            for (const [key, value] of Object.entries(customArabicMorseMap)) {
+                const code = key.charCodeAt(0);
+                if (code >= 0x0600 && code <= 0x06FF) {
+                    lettersOnly[key] = value;
+                }
+            }
+
+            const dictString = JSON.stringify(lettersOnly, null, 2);
+
+            const prompt =
+`You are an expert in Morse code and Arabic script.
+
+STEP 1: Read the table and rules below.
+STEP 2: Reply with ONLY the word "Ready." and nothing else.
+STEP 3: Wait for my next message.
+STEP 4: When I send text, translate it and reply with ONLY the translation.
+
+=== MC88 ARABIC MORSE TABLE ===
+(Designed by Mohamed Cheikh, 2026. Based on: most frequent letters get shortest codes.)
+
+${dictString}
+
+=== RULES ===
+1. Between words: use " / "
+2. Between letters: use a single space
+3. Normalize these letters before encoding:
+   أ -> ا
+   إ -> ا
+   آ -> ا
+   ؤ -> و
+   ئ -> ي
+4. Ignore diacritics (tashkeel). They are pronunciation guides, not letters.
+5. If a character is not in the table, output "?" instead.
+
+=== EXAMPLES ===
+Arabic input: سلام
+Morse output: ... .- .-.. .- --
+
+Morse input: ... .- .-.. .- --
+Arabic output: سلام
+
+=== YOUR RULES ===
+- If I send Arabic text, give Morse code.
+- If I send Morse code, give Arabic text.
+- Reply with the translation ONLY.
+- No explanations. No formatting. No prefixes.
+
+Now reply with "Ready." and wait.`;
+
+            document.getElementById('promptTextArea').value = prompt;
+            openModal('promptModal');
+        }
+
+        function copyPrompt(event) {
+            const promptArea = document.getElementById('promptTextArea');
+            promptArea.select();
+            document.execCommand('copy');
+
+            const btn = event.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Prompt Copied';
+            setTimeout(() => { btn.innerHTML = original; }, 1500);
+        }
+
+        // Init
+        window.addEventListener('load', function() {
+            setMode('ar');
+        });
+    </script>
+</body>
+</html>
