@@ -793,7 +793,7 @@
         };
 
         // Unicode range for Arabic diacritics (tashkeel).
-        // We skip any character in this range during encoding.
+ 
         const DIACRITIC_START = 0x064B;
         const DIACRITIC_END = 0x0652;
 
@@ -876,9 +876,7 @@
                 }
             }
 
-            // Join codes, then clean up multiple consecutive word separators.
-            // This handles the case where a whole word is dropped — we don't
-            // want to leave " / / " behind.
+           
             let result = codes.join(' ');
             result = result.replace(/(\s*\/\s*)+/g, ' / ');   // collapse consecutive slashes
             result = result.replace(/^\s*\/\s*/, '');         // trim leading slash
