@@ -43,7 +43,7 @@ mid-frequency letters slightly differently.
 
 ## Use & attribution
 
-Use it freely — personal or commercial. Study it, modify it, extend it.
+Use it freely — personal . Study it, modify it, extend it.
 
 If you use or redistribute the **MC88 Arabic mapping**, credit
 **Mohamed Cheikh (MC88)**. That's an ethical request, not a legal monopoly on
@@ -101,7 +101,7 @@ Open an issue or email. Corrections will be added here visibly.
 (Penn Arabic Treebank، KSU Corpus، ArabiCorpus). المدوّنات تتفاوت
 قليلًا في ترتيب الحروف المتوسطة.
 
-## ما هذا المشروع ليس
+## ما هذا المشروع 
 
 - ليس معيارًا رسميًا، ولا مصادقًا عليه من أي جهة. مجرد نظام مقترح.
 - لا يدّعي أنه لم يوجد جدول مورس عربي سابق. إن وُجد وفاتني،
@@ -111,7 +111,7 @@ Open an issue or email. Corrections will be added here visibly.
 
 ## الاستخدام والإسناد
 
-استخدمه بحرية — شخصيًا أو تجاريًا. ادرسه، عدّله، وسّعه.
+استخدمه بحرية — شخصيًا . ادرسه، عدّله، وسّعه.
 
 إن استخدمت **خريطة MC88 العربية** أو أعدت توزيعها، فاذكر
 **محمد الشيخ (MC88)**. هذا طلب أخلاقي، لا احتكار قانوني على المفهوم.
